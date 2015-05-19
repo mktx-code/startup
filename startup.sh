@@ -20,10 +20,12 @@ HAS_APT_PREF=$(ls /etc/apt/ | grep -ic "preferences")
 #
 ### ETC #
 #
-KWS=$(sed -i  '/^$/d' # To remove white spaces from files.
 ######### PRINT WELCOME #
 #
-echo -e $YLW"Welcome to the startup script,\n$BLUE$USER$END.\nYou are currently running $BLUE$(uname -s -r)\n$VAR$END"$END
+echo -e $YLW"Welcome to the startup script,$BLUE$USER$END\n"
+sleep 2
+echo -e $YLW"You are currently running:$END $BLUE$(uname -s -r)\n$VAR"$END
+sleep 3
 #
 ######### CHECK FOR ROOT #
 #
@@ -35,7 +37,7 @@ fi
 #
 ######### CHECK/UPDATE VERSION/SOURCES #
 #
-if [[ $VER < 8 ]];
+if [[ $VER < 8 ]]; then
     echo -e $YLW"Since your version is$END $BLUE$VER$END$YLW."$END
     echo -e $YLW"Do you want to upgrade to jessie(8) ?"$END
     echo -e $RED"This may break your system. Answer no if you're scared."$END
@@ -47,12 +49,12 @@ if [[ $VER < 8 ]];
               sleep 2
               mv /etc/apt/sources.list /etc/apt/sources.list.bak
               echo -e "deb http://ftp.us.debian.org/debian jessie main non-free contrib\n" > /etc/apt/sources.list
-              echo -e "deb-src http://ftp.us.debian.org/debian jessie main non-free contrib\n" >> /etc/apt/sources.list
+              echo -e "\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\n" >> /etc/apt/sources.list
               echo -e "\ndeb http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
               echo -e "\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
           else
               echo -e $YLW"Ok. Leaving your sources as they were.\nYour sources are:"$END
-              echo -e $BLUE"$(cat /etc/resolv.conf)"$END
+              echo -e $BLUE"$(cat /etc/apt/sources.list | sed 's/$/\n/' | sed -i  '/^$/d')"$END
               sleep 4
               if [[ $HAS_APT_PREF = 0 ]]; then
                   touch /etc/apt/preferences
@@ -68,8 +70,28 @@ if [[ $VER < 8 ]];
                   echo -e $YLW"Apt preferences has been created at:$END\n$GRN/etc/apt/preferences"$END
               fi
               echo -e $YLW"Current apt preferences settings:"$END
-              echo -e $GRN$(cat /etc/apt/preferences)$END
+              echo -e $BLUE"$(cat /etc/apt/preferences)"$END
           fi
+else
+    echo -e $YLW"Your current sources are:"$END
+    echo -e $BLUE$(tail -n 50 /etc/apt/sources.list)$END
+    sleep 5
+    echo -e $YLW"Do you want to change them to:"$END
+    echo -e $BLUE"deb http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb http://security.debian.org/ jessie/updates main non-free contrib\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib"$END
+    echo -e $YLW"(Y/no)"$END
+      read DIF_JESSIE_SOURCES
+        if [[ $DIF_JESSIE_SOURCES = no ]]; then
+            sleep 1
+        else
+            echo -e $YLW"Updating sources and backing up your old sources to:"$END
+            echo -e $GRN"/etc/apt/sources.list.bak"$END
+            sleep 3
+            mv /etc/apt/sources.list /etc/apt/sources.list.bak
+            echo -e "deb http://ftp.us.debian.org/debian jessie main non-free contrib\n" > /etc/apt/sources.list
+            echo -e "\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\n" >> /etc/apt/sources.list
+            echo -e "\ndeb http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
+            echo -e "\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
+        fi
 fi
 #
 ######### UPGRADE PACKAGES #
@@ -85,15 +107,18 @@ mv $SSH_CONF /etc/ssh/sshd_config.bak
 touch $SSH_CONF
 echo -e $YLW"Time to harden ssh. We will backup your original configuration file at:"$END
 echo -e $GRN"/etc/ssh/sshd_config.bak"$END
-echo -e $YLW"Do you have an ssh key? (Y/n)"$END
+echo -e $YLW"Do you have an ssh key? (Y/no)"$END
   read HAVE_KEY
     if [[ $HAVE_KEY = Y || $HAVE_KEY = y ]]; then
-        echo -e $YLW"Please paste your public key (beginning with ssh-rsa)"$END
+        echo -e $YLW"Please paste your public key (beginning with ssh-rsa) and surrounded by double quotes."$END
           read SSH_KEY
-              mkdir $USER/.ssh
-              cat $SSH_KEY > $USER/.ssh/authorized_keys
+          HAS_SSHFILE=$(ls -a /$USER | grep -c ".ssh")
+            if [[ $HAS_SSHFILE = 0 ]]; then
+                mkdir /$USER/.ssh
+            fi
+              echo -e "$SSH_KEY" > /$USER/.ssh/authorized_keys
               echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
-              sleep 1
+              sleep 3
               echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
               sleep 2
               echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
@@ -249,7 +274,9 @@ echo -e $YLW"aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128? (Y/no)"$END
     else
         echo -e "\nCiphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128\n"$END >> $SSH_CONF
     fi
-$KWS$SSH_CONFIG)
+mv $SSH_CONF /root/temp.sshconf
+sed '/^$/d' /root/temp.sshconf > $SSH_CONF
+rm -f /root/temp.sshconf
 echo -e $YLW"This is your new ssh configuration. Please take a moment to review it and note your new port. If you are unhappy with this config please type $(echo '"no"') to end the script. You can run it again and repopulate the config. If you are happy press anything to continue."$END
 sleep 10
 echo -e $BLUE"$(cat /etc/ssh/sshd_config)"$END
@@ -262,7 +289,7 @@ echo -e $BLUE"$(cat /etc/ssh/sshd_config)"$END
 #
 ##### GET DETAILS #
 #
-echo -e $YLW"Is this a healess (no gui) server? If you don't answer $(echo '"no"') here you will not be offered gui only packages. (Y/n)"$END
+echo -e $YLW"Is this a headless (no gui) server? If you don't answer $(echo '"no"') here you will not be offered gui only packages. (Y/n)"$END
   read INSTALL_GUIS
       if [[ $INSTALL_GUIS = no ]]; then
 #
@@ -298,10 +325,10 @@ echo -e $YLW"Is this a healess (no gui) server? If you don't answer $(echo '"no"
                           apt-get update
                           apt-get install sandfox -y
                       fi
-              fi
+            fi
       echo -e $YLW"Install pidgin/otr? (Y/no)"$END
-        read INSTALL_PIDGINOTR
-            if [[ $INSTALL_PIDGINOTR = no ]]; then
+        read INSTALL_PIDGIN
+            if [[ $INSTALL_PIDGIN = no ]]; then
                 sleep 1
             else
                 apt-get install pidgin pidgin-otr pidgin-plugin-pack pidgin-privacy-please -y
@@ -395,7 +422,7 @@ echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
       else
       fi
                   
-     
+exit 0     
 ## To Do.
 #  GPG
 #  Crunchbang Paranoid Security
