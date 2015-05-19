@@ -348,6 +348,9 @@ echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm
           service ntp start
           echo -e "\nhardstatus on\nhardstatus alwayslastline\n$(echo 'hardstatus string "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} %H %{..Y} %m/%d %C%a "')\n"
       fi
+#
+### BITCOIN #
+#
 echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
   read BITCOINER
       if [[ $BITCOINER = no ]]; then
@@ -358,27 +361,36 @@ echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
               if [[ $INSTALL_BTC_CORE = no ]]; then
                   sleep 1
               else
+                  echo $YLW"What user will run bitcoin? If the user doesn't exist it will be created."$END
+                    read BTC_USER
+                    BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/password)
+                      if [[ $BTC_USER_EXIST = 0 ]]; then
+                          adduser $BTC_USER
+                          adduser $BTC_USER sudo
+                          mkdir /home/$BTC_USER/.bitcoin
+                      else
+                          sleep 1
+                      fi
                   echo $YLW"You can build from source or download from bitcoin.org.\n$REDBuilding from source takes a long time and may break this script.$END\n$YLWDo you want to download directly from bitcoin.org? (Y/no)"$END
                     read BTC_DIRECT_DL
-                        if [[ $BTC_DIRECT_DL = no ]]; then
-                            echo -e $YLW"Installing dependencies to build bitcoin core"$END
-                            sleep 8
-                            apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
-                            mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
-                            echo -e $YLW"Getting source code from github."$END
-                            sleep 8
-                            git clone https://github.com/bitcoin/bitcoin
-                            cd bitcoin
-                            git checkout master
-                            echo -e $YLW"Building/installing bitcoin core now. You may want to take a nap."$END
-                            sleep 8
-                            ./autogen.sh
-                            ./configure --disable-wallet --without-gui --with-cli --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
-                            make
-                            sudo make install
-                            
-                        else
-                        fi
+                      if [[ $BTC_DIRECT_DL = no ]]; then
+                          echo -e $YLW"Installing dependencies to build bitcoin core"$END
+                          sleep 8
+                          apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
+                          mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
+                          echo -e $YLW"Getting source code from github."$END
+                          sleep 8
+                          git clone https://github.com/bitcoin/bitcoin
+                          cd bitcoin
+                          git checkout master
+                          echo -e $YLW"Building/installing bitcoin core now. You may want to take a nap."$END
+                          sleep 8
+                          ./autogen.sh
+                          ./configure
+                          make
+                          sudo make install
+                      else
+                      fi
               fi
       else
       fi
