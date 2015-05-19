@@ -15,7 +15,7 @@ END="\033[0m"
 #
 ### SYSTEM #
 VER=$(cat /etc/debian_version)
-EXT_IP=$(wget wtfismyip.com/text)
+EXT_IP=$(wget -q wtfismyip.com/text)
 HAS_APT_PREF=$(ls /etc/apt/ | grep -ic "preferences")
 #
 ### ETC #
@@ -54,9 +54,22 @@ if [[ $VER < 8 ]];
               echo -e $YLW"Ok. Leaving your sources as they were.\nYour sources are:"$END
               echo -e $BLUE"$(cat /etc/resolv.conf)"$END
               sleep 4
+              if [[ $HAS_APT_PREF = 0 ]]; then
+                  touch /etc/apt/preferences
+              else
+                  cp /etc/apt/preferences /etc/apt/preferences.bak
+              fi
+              echo -e "\nPackage: *\nPin: release o=Debian,n=jessie\nPin-Priority: 800\n\n" > /etc/apt/preferences
+              echo -e "\nPackage: *\nPin: release o=Debian,n=jessie/updates\nPin-Priority: 850\n\n" >> /etc/apt/preferences
+              if [[ $HAS_APT_PREF > 0 ]]; then
+                  echo -e $YLW"Apt preferences has been backed up to:$END\n$GRN/etc/apt/preferences.bak"$END
+                  sleep 5
+              else
+                  echo -e $YLW"Apt preferences has been created at:$END\n$GRN/etc/apt/preferences"$END
+              fi
+              echo -e $YLW"Current apt preferences settings:"$END
+              echo -e $GRN$(cat /etc/apt/preferences)$END
           fi
-fi
-if [[ $HAS_APT_PREF = 0 ]]; then
 fi
 #
 ######### UPGRADE PACKAGES #
@@ -247,7 +260,62 @@ echo -e $BLUE"$(cat /etc/ssh/sshd_config)"$END
 #
 ########## INSTALLS #
 #
-### TOR REPO#
+##### GET DETAILS #
+#
+echo -e $YLW"Is this a healess (no gui) server? If you don't answer $(echo '"no"') here you will not be offered gui only packages. (Y/n)"$END
+  read INSTALL_GUIS
+      if [[ $INSTALL_GUIS = no ]]; then
+#
+### MOZILLA REPO#
+#
+          echo -e $YLW"Do you want to add the mozilla iceweasel repo? (Y/no)"$END
+            read ADD_MOZ
+              if [[ $ADD_MOZ = no ]]; then
+                  sleep 1
+              else
+                  echo "deb http://mozilla.debian.net/ jessie-backports iceweasel-release" >> /etc/apt/sources.list
+                  gpg --keyserver keys.gnupg.net --recv 85F06FBC75E067C3F305C3C985A3D26506C4AE2A
+                  gpg --check-sigs 0x06C4AE2A
+                  gpg --export -a 06C4AE2A | apt-key add -
+                  echo -e "\nPackage: *\nPin: release o=Mozilla,n=jessie-backports\nPin-Priority: 860\n\n" > /etc/apt/source.list
+              fi
+              echo -e $YLW"Add iceweasel? (Y/no)"$END
+                read INSTALL_ICEWSL
+              if [[ $INSTALL_ICEWSL = no ]]; then
+                  sleep 1
+              else
+                  apt-get update
+                  apt-get install iceweasel -y
+                  echo -e $YLW"Install sandfox? (Y/no)"$END
+                    read INSTALL_SFOX
+                      if [[ $INSTALL_SFOX = no ]]; then
+                          sleep 1
+                      else
+                          echo -e "\ndeb http://ignorantguru.github.com/debian/ unstable main\n" >> /etc/apt/sources.list
+                          gpg --keyserver keys.gnupg.net --recv-keys 7977070A723C6CCB696C0B0227A5AC5A01937621
+                          gpg --check-sigs 0x01937621
+                          gpg --export -a 01937621 | apt-key add -
+                          apt-get update
+                          apt-get install sandfox -y
+                      fi
+              fi
+      echo -e $YLW"Install pidgin/otr? (Y/no)"$END
+        read INSTALL_PIDGINOTR
+            if [[ $INSTALL_PIDGINOTR = no ]]; then
+                sleep 1
+            else
+                apt-get install pidgin pidgin-otr pidgin-plugin-pack pidgin-privacy-please -y
+            fi
+      echo -e $YLW"Install geany, keepassx, and claws-mail? (Y/n)"$END
+        read INSTALL_SUGGESTED_GUIS
+            if [[ $INSTALL_SUGGESTED_GUIS = no ]]; then
+                sleep 1
+            else
+                apt-get install geany keepassx claws-mail -y
+            fi
+      fi
+#
+### TOR REPO #
 #
 echo -e $YLW"Do you want to add the torproject repos? (Y/no)"$END
   read TOR_REPO
@@ -256,53 +324,66 @@ echo -e $YLW"Do you want to add the torproject repos? (Y/no)"$END
     else
         echo "deb http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
         echo "deb-src http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
-        echo "deb http://deb.torproject.org/torproject.org tor-experimental-0.2.6.x-jessie main" >> /etc/apt/sources.list
-        echo "deb-src http://deb.torproject.org/torproject.org tor-experimental-0.2.6.x-jessie main" >> /etc/apt/sources.list
         gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
         gpg --check-sigs 0x886DDD89
         gpg --export -a 886DDD89 | apt-key add -
-        echo -e $YLW"Do you want to install tor, tor-arm, privoxy, and obfsproxy? (Y/no)"$END
+        echo -e "\nPackage: *\nPin: release o=TorProject,n=jessie\nPin-Priority: 900\n\n" > /etc/apt/sources.list
+        echo -e $YLW"Install tor, tor-arm, privoxy, and obfsproxy? (Y/no)"$END
           read INSTALL_TOR
             if [[ $INSTALL_TOR = no ]]; then
                 sleep 1
             else
                 apt-get update
-                apt-get install -t tor-experimental-0.2.6.x-jessie deb.torproject.org -y; apt-get install -t tor-experimental-0.2.6.x-jessie tor privoxy obfsproxy tor-arm -y
-            fi
-#
-### MOZILLA REPO#
-#
-echo -e $YLW"Do you want to add the mozilla iceweasel repo? (Y/no)"$END
-  read ADD_MOZ
-    if [[ $ADD_MOZ = no ]]; then
-        sleep 1
-    else
-        echo "deb http://mozilla.debian.net/ jessie-backports iceweasel-release" >> /etc/apt/sources.list
-        gpg --keyserver keys.gnupg.net --recv 85F06FBC75E067C3F305C3C985A3D26506C4AE2A
-        gpg --check-sigs 0x06C4AE2A
-        gpg --export -a 06C4AE2A | apt-key add -
-    fi
-echo -e $YLW"Add iceweasel? (Y/no)"$END
-  read INSTALL_ICEWSL
-    if [[ $INSTALL_ICEWSL = no ]]; then
-        sleep 1
-    else
-        apt-get update
-        apt-get install -t jessie-backports iceweasel -y
-        echo -e $YLW"Install sandfox? (Y/no)"$END
-          read INSTALL_SFOX
-            if [[ $INSTALL_SFOX = no ]]; then
-                sleep 1
-            else
-                echo -e "\ndeb http://ignorantguru.github.com/debian/ unstable main\n" >> /etc/apt/sources.list
-                gpg --keyserver keys.gnupg.net --recv-keys 7977070A723C6CCB696C0B0227A5AC5A01937621
-                gpg --check-sigs 0x01937621
-                gpg --export -a 01937621 | apt-key add -
-                apt-get update
-                apt-get install sandfox -y
+                apt-get install deb.torproject.org -y; apt-get install tor privoxy obfsproxy tor-arm -y
             fi
     fi
-#apt-get ntp ntpdate install screen git haveged curl atop pwgen secure-delete lvm2 cryptsetup -y
+echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm2, cryptsetup, badblocks, ntp, and ntpdate? (Y/n)"$END
+  read INSTALL_SUGGESTED_DEFAULTS
+      if [[ $INSTALL_SUGGESTED_DEFAULTS = no ]]; then
+          sleep 1
+      else
+          apt-get ntp ntpdate install screen git haveged curl atop pwgen secure-delete lvm2 cryptsetup -y
+          service ntp stop
+          ntpdate 0.europe.pool.ntp.org
+          service ntp start
+          echo -e "\nhardstatus on\nhardstatus alwayslastline\n$(echo 'hardstatus string "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} %H %{..Y} %m/%d %C%a "')\n"
+      fi
+echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
+  read BITCOINER
+      if [[ $BITCOINER = no ]]; then
+          sleep 1
+      elif [[ $INSTALL_GUIS != no ]]; then
+          echo -e $YLW"Install bitcoin-core? (Y/no)"$END
+            read INSTALL_BTC_CORE
+              if [[ $INSTALL_BTC_CORE = no ]]; then
+                  sleep 1
+              else
+                  echo $YLW"You can build from source or download from bitcoin.org.\n$REDBuilding from source takes a long time and may break this script.$END\n$YLWDo you want to download directly from bitcoin.org? (Y/no)"$END
+                    read BTC_DIRECT_DL
+                        if [[ $BTC_DIRECT_DL = no ]]; then
+                            echo -e $YLW"Installing dependencies to build bitcoin core"$END
+                            sleep 8
+                            apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
+                            mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
+                            echo -e $YLW"Getting source code from github."$END
+                            sleep 8
+                            git clone https://github.com/bitcoin/bitcoin
+                            cd bitcoin
+                            git checkout master
+                            echo -e $YLW"Building/installing bitcoin core now. You may want to take a nap."$END
+                            sleep 8
+                            ./autogen.sh
+                            ./configure --disable-wallet --without-gui --with-cli --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
+                            make
+                            sudo make install
+                            
+                        else
+                        fi
+              fi
+      else
+      fi
+                  
+     
 ## To Do.
 #  GPG
 #  Crunchbang Paranoid Security
