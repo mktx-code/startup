@@ -15,16 +15,46 @@ END="\033[0m"
 #
 ### SYSTEM #
 VER=$(cat /etc/debian_version)
-EXT_IP=$(wget -q wtfismyip.com/text -o /tmp/ip)
+INT_IP=$(ip -4 address show)
+HOSTNAME=$(cat /etc/hostname)
+DNS_IP=$(sed -e '/^$/d' /etc/resolv.conf | awk '{if (tolower($1)=="nameserver") print $2}')
+NET_ROUTE=$(netstat -nr)
+IFACE_TRAFFIC=$(netstat -i)
 #
 ### ETC #
 #
+#
 ######### PRINT WELCOME #
 #
-echo -e $YLW"Welcome to the startup script, $BLUE$USER$END\n"
+echo -e $YLW"Welcome to the startup script,$END $BLUE$USER\@\$HOSTNAME$END\n"
+sleep 1
+#
+######### SYS INFO #
+#
+echo -e $YLW"Here is some system information:"$END
+sleep 1
+echo -e $BLUE$(date)$END
+sleep 1
+echo -e $BLUE"Last login from: $(cat /var/log/lastlog | cut -b 9-)"$END
+sleep 1
+echo -e $BLUE"Currently logged in:\n$(who -h)"$END
 sleep 2
-echo -e $YLW"You are currently running:$END $BLUE$(uname -s -r)\n$VAR"$END
-sleep 3
+echo -e $BLUE"Last 10 logins:\n$(last -n 10)"$END
+echo -e $BLUE$(uname -s -r)$END
+echo -e $BLUE"Version $VER"$END
+sleep 1
+echo -e $BLUE$(free)$END
+sleep 2
+wget -q wtfismyip.com/text -o /tmp/ip
+echo -e $BLUE$"External IP: $(cat /tmp/ip)"$END
+rm -f /tmp/ip
+sleep 1
+echo -e $BLUE"Internal IP:$INT_IP"$END
+sleep 1
+echo -e $BLUE"Network routing:\n$NET_ROUTE"$END
+sleep 2
+echo -e $BLUE"Interface traffic:\n$IFACE_TRAFFIC"$END
+sleep 4
 #
 ######### CHECK FOR ROOT #
 #
@@ -118,6 +148,7 @@ sleep 5
 ### PORT #
 #
 echo -e $YLW"Please have your ssh-rsa pubkey ready (if you have one)."$END
+sleep 2
 echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a number that is 5 digits."$END
   read SSH_PORT
       if [[ $SSH_PORT -ge 1 || $SSH_PORT -le 99999 ]]; then
@@ -139,38 +170,44 @@ echo -e $YLW"Do you have an ssh key? (Y/no)"$END
             if [[ -e /"$USER"/.ssh ]]; then
                 echo -e "$SSH_KEY" > /$USER/.ssh/authorized_keys
                 echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
-                sleep 3
                 echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
                 sleep 3
-                echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
+                echo -e $YLW"Would you like to turn off password authentication? (Y/no)"$END
                   read SSH_PASS_AUTH
-                    if [[ $SSH_PASS_AUTH = Y || $SSH_PASS_AUTH = y ]]; then
+                    if [[ $SSH_PASS_AUTH = no ]]; then
+                        sleep 1
+                    else
                         echo -e "\nPasswordAuthentication no\n" >> $SSH_CONF
                         echo -e "\nPubKeyAuthentication yes\n" >> $SSH_CONF
                         echo -e "\nAuthorizedKeysFile $USER/.ssh/authorized_keys\n" >> $SSH_CONF
                     fi
-                echo -e $YLW"Permit root login only by ssh key? (Y/n)"$END
+                echo -e $YLW"Permit root login only by ssh key? (Y/no)"$END
                   read SSH_ROOT_LOGIN
-                    if [[ $SSH_ROOT_LOGIN = Y || $SSH_ROOT_LOGIN = y ]]; then  
+                    if [[ $SSH_ROOT_LOGIN = no ]]; then
+                        sleep 1
+                    else  
                         echo -e "\nPermitRootLogin without-password\n" >> $SSH_CONF
                     fi
             else
                 mkdir /$USER/.ssh/
                 echo -e "$SSH_KEY" > /$USER/.ssh/authorized_keys
                 echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
-                sleep 3
                 echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
-                sleep 2
-                echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
+                sleep 3
+                echo -e $YLW"Would you like to turn off password authentication? (Y/no)"$END
                   read SSH_PASS_AUTH
-                    if [[ $SSH_PASS_AUTH = Y || $SSH_PASS_AUTH = y ]]; then
+                    if [[ $SSH_PASS_AUTH = no ]]; then
+                        sleep 1
+                    else
                         echo -e "\nPasswordAuthentication no\n" >> $SSH_CONF
                         echo -e "\nPubKeyAuthentication yes\n" >> $SSH_CONF
                         echo -e "\nAuthorizedKeysFile $USER/.ssh/authorized_keys\n" >> $SSH_CONF
                     fi
-                echo -e $YLW"Permit root login only by ssh key? (Y/n)"$END
+                echo -e $YLW"Permit root login only by ssh key? (Y/no)"$END
                   read SSH_ROOT_LOGIN
-                    if [[ $SSH_ROOT_LOGIN = Y || $SSH_ROOT_LOGIN = y ]]; then  
+                    if [[ $SSH_ROOT_LOGIN = no ]]; then
+                        sleep 1
+                    else  
                         echo -e "\nPermitRootLogin without-password\n" >> $SSH_CONF
                     fi
             fi
@@ -308,11 +345,11 @@ echo -e $YLW"aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128? (Y/no)"$END
 mv $SSH_CONF /root/temp.sshconf
 sed '/^$/d' /root/temp.sshconf > $SSH_CONF
 rm -f /root/temp.sshconf
-echo -e $YLW"This is your new ssh configuration. Please take a moment to review it and note your new port. If you are unhappy with this config please."$END
-sleep 3
+echo -e $YLW"This is your new ssh configuration. Please take a moment to review it and note your new port."$END
+sleep 1
 echo -e $BLUE"$(cat /etc/ssh/sshd_config)"$END
 sleep 5
-echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script now. You can run it again and repopulate the config. If you are happy press anything to continue."$END
+echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script now. You can run it again and repopulate the config. If you are happy press enter to continue."$END
   read SSH_HAPPY
     if [[ $SSH_HAPPY = no ]]; then
         exit 0
@@ -322,7 +359,7 @@ echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script n
 #
 ##### GET DETAILS #
 #
-echo -e $YLW"Is this a headless (no gui) server? If you don't answer $(echo '"no"') here you will not be offered gui only packages. (Y/n)"$END
+echo -e $YLW"Is this a headless (no gui) server? If you don't answer $(echo '"no"') here you will not be offered gui only packages. (Y/no)"$END
   read INSTALL_GUIS
       if [[ $INSTALL_GUIS = no ]]; then
 #
@@ -397,7 +434,7 @@ echo -e $YLW"Do you want to add the torproject repos? (Y/no)"$END
                 apt-get install deb.torproject.org -y; apt-get install tor privoxy obfsproxy tor-arm -y
             fi
     fi
-echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm2, cryptsetup, badblocks, ntp, and ntpdate? (Y/n)"$END
+echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm2, cryptsetup, badblocks, ntp, and ntpdate? (Y/no)"$END
   read INSTALL_SUGGESTED_DEFAULTS
       if [[ $INSTALL_SUGGESTED_DEFAULTS = no ]]; then
           sleep 1
@@ -406,7 +443,7 @@ echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm
           service ntp stop
           ntpdate 0.europe.pool.ntp.org
           service ntp start
-          echo -e "\nhardstatus on\nhardstatus alwayslastline\n$(echo 'hardstatus string "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} %H %{..Y} %m/%d %C%a "')\n"
+          echo -e "\nhardstatus on\nhardstatus alwayslastline\n$(echo 'hardstatus string "%{.bW}%-w%{.rW}%n %t%{-}%+w %=%{..G} %H %{..Y} %m/%d %C%a "')\n" >> /etc/screenrc
       fi
 #
 ### BITCOIN #
@@ -421,9 +458,9 @@ echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
               if [[ $INSTALL_BTC_CORE = no ]]; then
                   sleep 1
               else
-                  echo $YLW"What user will run bitcoin? If the user doesn't exist it will be created."$END
+                  echo -e $YLW"What user will run bitcoin? If the user doesn't exist it will be created."$END
                     read BTC_USER
-                    BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/password)
+                    BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
                       if [[ $BTC_USER_EXIST = 0 ]]; then
                           adduser $BTC_USER
                           adduser $BTC_USER sudo
