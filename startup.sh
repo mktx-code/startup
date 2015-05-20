@@ -117,7 +117,7 @@ sleep 5
 #
 ### PORT #
 #
-ehco -e $YLW"Please have your ssh-rsa pubkey ready (if you have one)."$END
+echo -e $YLW"Please have your ssh-rsa pubkey ready (if you have one)."$END
 echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a number that is 5 digits."$END
   read SSH_PORT
       if [[ $SSH_PORT -ge 1 || $SSH_PORT -le 99999 ]]; then
