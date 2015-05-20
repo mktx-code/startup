@@ -450,6 +450,7 @@ echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
                           make
                           sudo make install
                       else
+                          sleep 1
                       fi
               fi
       fi
