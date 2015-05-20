@@ -42,8 +42,7 @@ if [[ $VER < 8 ]]; then
     echo -e $RED"This may break your system. Answer no if you're scared."$END
     echo -e $YLW"(Y/n)"$END
       read UPDATE_SOURCES
-      UPDATE_SOURCES_IS=$(echo UPDATE_SOURCES | grep -ic "n")
-          if [[ UPDATE_SOURCES_IS -ge 1 ]]; then
+        if [[ $UPDATE_SOUECES = no ]]; then
               echo -e $YLW"Ok. Leaving your sources as they were.\nYour sources are:"$END
               echo -e $BLUE"$(cat /etc/apt/sources.list)"$END
           else
@@ -76,8 +75,7 @@ else
     echo -e $BLUE"deb http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb http://security.debian.org/ jessie/updates main non-free contrib\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib"$END
     echo -e $YLW"(Y/no)"$END
       read CHANGE_JESSIE_SOURCES
-      CHANGE_JESSIE_SOURCES_IS=$(echo $CHANGE_JESSIE_SOURCES | grep -ic "n")
-        if [[ $CHANGE_JESSIE_SOURCES_IS -ge 1 ]]; then
+        if [[ $CHANGE_JESSIE_SOURCES = no ]]; then
             sleep 1
         else
             echo -e $YLW"Updating sources and backing up your old sources to:"$END
