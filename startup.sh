@@ -97,7 +97,8 @@ else
 echo -e "\nPackage: *\nPin: release o=Debian,n=jessie\nPin-Priority: 800\n\n" > /etc/apt/preferences
 echo -e "\nPackage: *\nPin: release o=Debian,n=jessie/updates\nPin-Priority: 850\n\n" >> /etc/apt/preferences
 echo -e $YLW"Current apt preferences settings:"$END
-echo -e $BLUE"$(cat /etc/apt/preferences)"$END   
+echo -e $BLUE"$(cat /etc/apt/preferences)"$END
+sleep 5   
 fi
 #
 ######### UPGRADE PACKAGES #
@@ -112,14 +113,15 @@ touch $SSH_CONF
 echo -e $YLW"Time to harden ssh. We will backup your original configuration file at:"$END
 echo -e $GRN"/etc/ssh/sshd_config.bak"$END
 echo -e $YLW"Please answer the following questions to populate the rest of your sshd_config.\nIf you don't know the answers, I will always phrase the questions so that $(echo '"Y"') is the most sensible.\nYou must spell the word $(echo '"no"') exactly or the script will assume a $(echo '"yes"') answer."$END
-sleep 1
+sleep 5
 #
 ### PORT #
 #
+ehco -e $YLW"Please have your ssh-rsa pubkey ready (if you have one)."$END
 echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a number that is 5 digits."$END
   read SSH_PORT
       if [[ $SSH_PORT -ge 1 || $SSH_PORT -le 99999 ]]; then
-          echo -e "\nPort $SSH_PORT\n" >> $SSH_CONF
+          echo -e "\nPort $SSH_PORT\n" > $SSH_CONF
       elif [[ -z $SSH_PORT ]]; then
           echo -e $RED"THAT WAS NOT AN ACCEPTABLE PORT!!!! RE-RUN THE SCRIPT AND PUT SOMETHING SENSIBLE HERE BEFORE YOU LOCK YOURSELF OUT!!"$END
           exit 0
@@ -129,8 +131,7 @@ echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a
 #
 echo -e $YLW"Do you have an ssh key? (Y/no)"$END
   read HAVE_KEY
-  HAVE_KEY_IS=$(echo "$HAVE_KEY_IS" | grep -ic "n")
-    if [[ $HAVE_KEY_IS -ge 1 ]]; then
+    if [[ $HAVE_KEY = no ]]; then
         sleep 1
     else
         echo -e $YLW"Please paste your public key (beginning with ssh-rsa)."$END
@@ -140,7 +141,7 @@ echo -e $YLW"Do you have an ssh key? (Y/no)"$END
                 echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
                 sleep 3
                 echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
-                sleep 2
+                sleep 3
                 echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
                   read SSH_PASS_AUTH
                     if [[ $SSH_PASS_AUTH = Y || $SSH_PASS_AUTH = y ]]; then
