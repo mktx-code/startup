@@ -37,7 +37,7 @@ echo -e $BLUE$(date)$END
 sleep 1
 echo -e $BLUE"Last login from: $(cat /var/log/lastlog | cut -b 9-)"$END
 sleep 1
-echo -e $BLUE"Currently logged in:\n$(who -h)"$END
+echo -e $BLUE"Currently logged in:\n$(who -h)'"$END
 sleep 2
 echo -e $BLUE"Last 10 logins:\n$(last -n 10)"$END
 echo -e $BLUE$(uname -s -r)$END
