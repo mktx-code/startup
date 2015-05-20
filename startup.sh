@@ -28,35 +28,66 @@ IFACE_TRAFFIC=$(netstat -i)
 #
 ######### PRINT WELCOME #
 #
-echo -e $YLW"Welcome to the startup script,$END $BLUE$USER\@\$HOSTNAME$END\n"
+echo -e $YLW"Welcome to the startup script,$END $BLUE$USER@$HOSTNAME$END\n"
 sleep 1
 #
 ######### SYS INFO #
 #
 echo -e $YLW"Here is some system information:"$END
-sleep 1
-echo -e $BLUE$(date)$END
-sleep 1
-echo -e $BLUE"Last login from: $(cat /var/log/lastlog | cut -b 9-)"$END
-sleep 1
-echo -e $BLUE"Currently logged in:\n$(who -H)"$END
 sleep 2
-echo -e $BLUE"Last 10 logins:\n$(last -n 10)"$END
+echo -e $YLW"Date:"$END
+sleep 1
+echo -e $END$BLUE$(date)$END
+echo -e $YLW"Last login from:$END"
+sleep 1
+echo -e $BLUE$(cat /var/log/lastlog | cut -b 9-)$END
+echo -e $YLW"Currently logged in:$END"
+sleep 1
+echo -e $BLUE$(who -H)$END
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Last 10 logins:"$END
+sleep 1
+echo -e $BLUE$(last -n 10)$END
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Kernel info:"$END
+sleep 1
 echo -e $BLUE$(uname -s -r)$END
-echo -e $BLUE"Version $VER"$END
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Version:$END"
+sleep 1
+echo -e $BLUE$VER$END
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Free space:"$END
 sleep 1
 echo -e $BLUE$(free)$END
-sleep 2
-wget -q wtfismyip.com/text -o /tmp/ip
-echo -e $BLUE$"External IP: $(cat /tmp/ip)"$END
+echo -e $YLW"Press enter to continue."$END
+  read
+wget -q wtfismyip.com/text -O /tmp/ip
+echo -e $YLW"External IP:"$END
+sleep 1
+echo -e $BLUE$(cat /tmp/ip)$END
 rm -f /tmp/ip
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Internal IP:"$END
 sleep 1
-echo -e $BLUE"Internal IP:$INT_IP"$END
+echo -e $BLUE"$INT_IP"$END
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Network routing:"$END
 sleep 1
-echo -e $BLUE"Network routing:\n$NET_ROUTE"$END
-sleep 2
-echo -e $BLUE"Interface traffic:\n$IFACE_TRAFFIC"$END
-sleep 4
+echo -e $BLUE$NET_ROUTE$END
+echo -e $YLW"Press enter to continue."$END
+  read
+echo -e $YLW"Interface traffic:"$END
+sleep 1
+echo -e $BLUE$IFACE_TRAFFIC$END
+echo -e $YLW"Press enter to continue."$END
+  read
 #
 ######### CHECK FOR ROOT #
 #
