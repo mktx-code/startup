@@ -16,7 +16,6 @@ END="\033[0m"
 ### SYSTEM #
 VER=$(cat /etc/debian_version)
 EXT_IP=$(wget -q wtfismyip.com/text)
-HAS_APT_PREF=$(ls /etc/apt/ | grep -ic "preferences")
 #
 ### ETC #
 #
@@ -43,44 +42,42 @@ if [[ $VER < 8 ]]; then
     echo -e $RED"This may break your system. Answer no if you're scared."$END
     echo -e $YLW"(Y/n)"$END
       read UPDATE_SOURCES
-          if [[ $UPDATE_SOURCES = Y || $UPDATE_SOURCES = y ]]; then
+      UPDATE_SOURCES_IS=$(echo UPDATE_SOURCES | grep -ic "n")
+          if [[ UPDATE_SOURCES_IS -ge 1 ]]; then
+              echo -e $YLW"Ok. Leaving your sources as they were.\nYour sources are:"$END
+              echo -e $BLUE"$(cat /etc/apt/sources.list)"$END
+          else
               echo -e $YLW"Updating sources to jessie, and backing up your old sources to:"$END
               echo -e $GRN"/etc/apt/sources.list.bak"$END
-              sleep 2
+              sleep 3
               mv /etc/apt/sources.list /etc/apt/sources.list.bak
               echo -e "deb http://ftp.us.debian.org/debian jessie main non-free contrib\n" > /etc/apt/sources.list
               echo -e "\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\n" >> /etc/apt/sources.list
               echo -e "\ndeb http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
               echo -e "\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
-          else
-              echo -e $YLW"Ok. Leaving your sources as they were.\nYour sources are:"$END
-              echo -e $BLUE"$(cat /etc/apt/sources.list | sed 's/$/\n/' | sed -i  '/^$/d')"$END
-              sleep 4
-              if [[ $HAS_APT_PREF = 0 ]]; then
-                  touch /etc/apt/preferences
-              else
+              sleep 3
+              if [[ -e /etc/apt/preferences ]]; then
                   cp /etc/apt/preferences /etc/apt/preferences.bak
-              fi
-              echo -e "\nPackage: *\nPin: release o=Debian,n=jessie\nPin-Priority: 800\n\n" > /etc/apt/preferences
-              echo -e "\nPackage: *\nPin: release o=Debian,n=jessie/updates\nPin-Priority: 850\n\n" >> /etc/apt/preferences
-              if [[ $HAS_APT_PREF > 0 ]]; then
                   echo -e $YLW"Apt preferences has been backed up to:$END\n$GRN/etc/apt/preferences.bak"$END
-                  sleep 5
+                  sleep 3
               else
                   echo -e $YLW"Apt preferences has been created at:$END\n$GRN/etc/apt/preferences"$END
               fi
+          fi
+              echo -e "\nPackage: *\nPin: release o=Debian,n=jessie\nPin-Priority: 800\n\n" > /etc/apt/preferences
+              echo -e "\nPackage: *\nPin: release o=Debian,n=jessie/updates\nPin-Priority: 850\n\n" >> /etc/apt/preferences
               echo -e $YLW"Current apt preferences settings:"$END
               echo -e $BLUE"$(cat /etc/apt/preferences)"$END
-          fi
 else
     echo -e $YLW"Your current sources are:"$END
-    echo -e $BLUE$(tail -n 50 /etc/apt/sources.list)$END
+    echo -e $BLUE$(cat /etc/apt/sources.list)$END
     sleep 5
     echo -e $YLW"Do you want to change them to:"$END
     echo -e $BLUE"deb http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb http://security.debian.org/ jessie/updates main non-free contrib\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib"$END
     echo -e $YLW"(Y/no)"$END
-      read DIF_JESSIE_SOURCES
-        if [[ $DIF_JESSIE_SOURCES = no ]]; then
+      read CHANGE_JESSIE_SOURCES
+      CHANGE_JESSIE_SOURCES_IS=$(echo $CHANGE_JESSIE_SOURCES | grep -ic "n")
+        if [[ $CHANGE_JESSIE_SOURCES_IS -ge 1 ]]; then
             sleep 1
         else
             echo -e $YLW"Updating sources and backing up your old sources to:"$END
@@ -92,6 +89,17 @@ else
             echo -e "\ndeb http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
             echo -e "\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib\n" >> /etc/apt/sources.list
         fi
+  if [[ -e /etc/apt/preferences ]]; then
+      cp /etc/apt/preferences /etc/apt/preferences.bak
+      echo -e $YLW"Apt preferences has been backed up to:$END\n$GRN/etc/apt/preferences.bak"$END
+      sleep 3
+  else
+      echo -e $YLW"Apt preferences has been created at:$END\n$GRN/etc/apt/preferences"$END
+  fi
+echo -e "\nPackage: *\nPin: release o=Debian,n=jessie\nPin-Priority: 800\n\n" > /etc/apt/preferences
+echo -e "\nPackage: *\nPin: release o=Debian,n=jessie/updates\nPin-Priority: 850\n\n" >> /etc/apt/preferences
+echo -e $YLW"Current apt preferences settings:"$END
+echo -e $BLUE"$(cat /etc/apt/preferences)"$END   
 fi
 #
 ######### UPGRADE PACKAGES #
@@ -100,53 +108,77 @@ apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
 #
 ######### HARDEN SSH #
 #
-### SSH KEY #
-#
 SSH_CONF=/etc/ssh/sshd_config
 mv $SSH_CONF /etc/ssh/sshd_config.bak
 touch $SSH_CONF
 echo -e $YLW"Time to harden ssh. We will backup your original configuration file at:"$END
 echo -e $GRN"/etc/ssh/sshd_config.bak"$END
+echo -e $YLW"Please answer the following questions to populate the rest of your sshd_config.\nIf you don't know the answers, I will always phrase the questions so that $(echo '"Y"') is the most sensible.\nYou must spell the word $(echo '"no"') exactly or the script will assume a $(echo '"yes"') answer."$END
+sleep 1
+#
+### PORT #
+#
+echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a number that is 5 digits."$END
+  read SSH_PORT
+      if [[ $SSH_PORT -ge 1 || $SSH_PORT -le 99999 ]]; then
+          echo -e "\nPort $SSH_PORT\n" >> $SSH_CONF
+      elif [[ -z $SSH_PORT ]]; then
+          echo -e $RED"THAT WAS NOT AN ACCEPTABLE PORT!!!! RE-RUN THE SCRIPT AND PUT SOMETHING SENSIBLE HERE BEFORE YOU LOCK YOURSELF OUT!!"$END
+          exit 0
+      fi
+#
+### SSH KEY #
+#
 echo -e $YLW"Do you have an ssh key? (Y/no)"$END
   read HAVE_KEY
-    if [[ $HAVE_KEY = Y || $HAVE_KEY = y ]]; then
-        echo -e $YLW"Please paste your public key (beginning with ssh-rsa) and surrounded by double quotes."$END
+  HAVE_KEY_IS=$(echo "$HAVE_KEY_IS" | grep -ic "n")
+    if [[ $HAVE_KEY_IS -ge 1 ]]; then
+        sleep 1
+    else
+        echo -e $YLW"Please paste your public key (beginning with ssh-rsa)."$END
           read SSH_KEY
-          HAS_SSHFILE=$(ls -a /$USER | grep -c ".ssh")
-            if [[ $HAS_SSHFILE = 0 ]]; then
-                mkdir /$USER/.ssh
+            if [[ -e /"$USER"/.ssh ]]; then
+                echo -e "$SSH_KEY" > /$USER/.ssh/authorized_keys
+                echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
+                sleep 3
+                echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
+                sleep 2
+                echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
+                  read SSH_PASS_AUTH
+                    if [[ $SSH_PASS_AUTH = Y || $SSH_PASS_AUTH = y ]]; then
+                        echo -e "\nPasswordAuthentication no\n" >> $SSH_CONF
+                        echo -e "\nPubKeyAuthentication yes\n" >> $SSH_CONF
+                        echo -e "\nAuthorizedKeysFile $USER/.ssh/authorized_keys\n" >> $SSH_CONF
+                    fi
+                echo -e $YLW"Permit root login only by ssh key? (Y/n)"$END
+                  read SSH_ROOT_LOGIN
+                    if [[ $SSH_ROOT_LOGIN = Y || $SSH_ROOT_LOGIN = y ]]; then  
+                        echo -e "\nPermitRootLogin without-password\n" >> $SSH_CONF
+                    fi
+            else
+                mkdir /$USER/.ssh/
+                echo -e "$SSH_KEY" > /$USER/.ssh/authorized_keys
+                echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
+                sleep 3
+                echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
+                sleep 2
+                echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
+                  read SSH_PASS_AUTH
+                    if [[ $SSH_PASS_AUTH = Y || $SSH_PASS_AUTH = y ]]; then
+                        echo -e "\nPasswordAuthentication no\n" >> $SSH_CONF
+                        echo -e "\nPubKeyAuthentication yes\n" >> $SSH_CONF
+                        echo -e "\nAuthorizedKeysFile $USER/.ssh/authorized_keys\n" >> $SSH_CONF
+                    fi
+                echo -e $YLW"Permit root login only by ssh key? (Y/n)"$END
+                  read SSH_ROOT_LOGIN
+                    if [[ $SSH_ROOT_LOGIN = Y || $SSH_ROOT_LOGIN = y ]]; then  
+                        echo -e "\nPermitRootLogin without-password\n" >> $SSH_CONF
+                    fi
             fi
-              echo -e "$SSH_KEY" > /$USER/.ssh/authorized_keys
-              echo -e $YLW"Your public key:$END\n$BLUE$(echo -e "$SSH_KEY")"$END
-              sleep 3
-              echo -e $YLW"Has been added to$END $GRN/$USER/.ssh/authorized_keys$END"
-              sleep 2
-              echo -e $YLW"Would you like to turn off password authentication? (Y/n)"$END
-                read SSH_PASS_AUTH
-                  if [[ $SSH_PASS_AUTH = Y || $SSH_PASS_AUTH = y ]]; then
-                      echo -e "\nPasswordAuthentication no\n" >> $SSH_CONF
-                      echo -e "\nPubKeyAuthentication yes\n" >> $SSH_CONF
-                      echo -e "\nAuthorizedKeysFile $USER/.ssh/authorized_keys\n" >> $SSH_CONF
-                  fi
-              echo -e $YLW"Permit root login only by ssh key? (Y/n)"$END
-                read SSH_ROOT_LOGIN
-                  if [[ $SSH_ROOT_LOGIN = Y || $SSH_ROOT_LOGIN = y ]]; then  
-                      echo -e "\nPermitRootLogin without-password\n" >> $SSH_CONF
-                  fi
     fi
 #
 ### POPULATE CONFIG #
 #
-echo -e $YLW"Please answer the following questions to populate the rest of your sshd_config. If you don't know the answers, I will always phrase the questions so that $(echo '"Y"') is the most sensible. You must spell the word $(echo '"no"') exactly or the script will assume a $(echo '"yes"') answer."$END
-sleep 1
-echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a number that is 5 digits."$END
-  read SSH_PORT
-      if [[ $SSH_PORT > 1 || $SSH_PORT < 99999 ]]; then
-          echo -e "\nPort $SSH_PORT\n" >> $SSH_CONF
-      else
-          echo -e $RED"THAT WAS NOT AN ACCEPTABLE PORT!!!! RE-RUN THE SCRIPT AND PUT SOMETHING SENSIBLE HERE BEFORE YOU LOCK YOURSELF OUT!!"$END
-          exit 0
-      fi
 echo -e $YLW"Set StrictModes to yes? (Y/no)"$END
   read SSH_STRICT_MODES
     if [[ $SSH_STRICT_MODES = no ]]; then
@@ -421,7 +453,6 @@ echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
                       else
                       fi
               fi
-      else
       fi
                   
 exit 0     
