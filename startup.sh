@@ -15,7 +15,7 @@ END="\033[0m"
 #
 ### SYSTEM #
 VER=$(cat /etc/debian_version)
-EXT_IP=$(wget -q wtfismyip.com/text)
+EXT_IP=$(wget -q wtfismyip.com/text -o /tmp/ip)
 #
 ### ETC #
 #
