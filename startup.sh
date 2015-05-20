@@ -22,7 +22,7 @@ HAS_APT_PREF=$(ls /etc/apt/ | grep -ic "preferences")
 #
 ######### PRINT WELCOME #
 #
-echo -e $YLW"Welcome to the startup script,$BLUE$USER$END\n"
+echo -e $YLW"Welcome to the startup script, $BLUE$USER$END\n"
 sleep 2
 echo -e $YLW"You are currently running:$END $BLUE$(uname -s -r)\n$VAR"$END
 sleep 3
@@ -277,9 +277,11 @@ echo -e $YLW"aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128? (Y/no)"$END
 mv $SSH_CONF /root/temp.sshconf
 sed '/^$/d' /root/temp.sshconf > $SSH_CONF
 rm -f /root/temp.sshconf
-echo -e $YLW"This is your new ssh configuration. Please take a moment to review it and note your new port. If you are unhappy with this config please type $(echo '"no"') to end the script. You can run it again and repopulate the config. If you are happy press anything to continue."$END
-sleep 10
+echo -e $YLW"This is your new ssh configuration. Please take a moment to review it and note your new port. If you are unhappy with this config please."$END
+sleep 3
 echo -e $BLUE"$(cat /etc/ssh/sshd_config)"$END
+sleep 5
+echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script now. You can run it again and repopulate the config. If you are happy press anything to continue."$END
   read SSH_HAPPY
     if [[ $SSH_HAPPY = no ]]; then
         exit 0
@@ -304,7 +306,7 @@ echo -e $YLW"Is this a headless (no gui) server? If you don't answer $(echo '"no
                   gpg --keyserver keys.gnupg.net --recv 85F06FBC75E067C3F305C3C985A3D26506C4AE2A
                   gpg --check-sigs 0x06C4AE2A
                   gpg --export -a 06C4AE2A | apt-key add -
-                  echo -e "\nPackage: *\nPin: release o=Mozilla,n=jessie-backports\nPin-Priority: 860\n\n" > /etc/apt/source.list
+                  echo -e "\nPackage: *\nPin: release o=Mozilla,n=jessie-backports\nPin-Priority: 860\n\n" > /etc/apt/preferences
               fi
               echo -e $YLW"Add iceweasel? (Y/no)"$END
                 read INSTALL_ICEWSL
@@ -354,7 +356,7 @@ echo -e $YLW"Do you want to add the torproject repos? (Y/no)"$END
         gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
         gpg --check-sigs 0x886DDD89
         gpg --export -a 886DDD89 | apt-key add -
-        echo -e "\nPackage: *\nPin: release o=TorProject,n=jessie\nPin-Priority: 900\n\n" > /etc/apt/sources.list
+        echo -e "\nPackage: *\nPin: release o=TorProject,n=jessie\nPin-Priority: 900\n\n" >> /etc/apt/preferences
         echo -e $YLW"Install tor, tor-arm, privoxy, and obfsproxy? (Y/no)"$END
           read INSTALL_TOR
             if [[ $INSTALL_TOR = no ]]; then
@@ -369,7 +371,7 @@ echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm
       if [[ $INSTALL_SUGGESTED_DEFAULTS = no ]]; then
           sleep 1
       else
-          apt-get ntp ntpdate install screen git haveged curl atop pwgen secure-delete lvm2 cryptsetup -y
+          apt-get install ntp ntpdate screen git haveged curl atop pwgen secure-delete lvm2 cryptsetup -y
           service ntp stop
           ntpdate 0.europe.pool.ntp.org
           service ntp start
