@@ -7,10 +7,11 @@ set -e
 ######### VARIABLES #
 #
 ### COLORS #
-YLW="\033[1;33m"
-GRN="\033[01;32m"
-RED="\033[1;31m"
-BLUE="\033[1;34m"
+
+YLW="\033[0;33m"
+GRN="\033[32;0m"
+RED="\033[0;31m"
+BLUE="\033[0;34m"
 END="\033[0m"
 #
 ### SYSTEM #
@@ -37,7 +38,7 @@ echo -e $BLUE$(date)$END
 sleep 1
 echo -e $BLUE"Last login from: $(cat /var/log/lastlog | cut -b 9-)"$END
 sleep 1
-echo -e $BLUE"Currently logged in:\n$(who -h)'"$END
+echo -e $BLUE"Currently logged in:\n$(who -H)"$END
 sleep 2
 echo -e $BLUE"Last 10 logins:\n$(last -n 10)"$END
 echo -e $BLUE$(uname -s -r)$END
