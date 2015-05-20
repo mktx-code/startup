@@ -7,7 +7,7 @@ set -e
 ######### VARIABLES #
 #
 ### COLORS #
-
+#
 YLW="\033[0;33m"
 GRN="\033[32;0m"
 RED="\033[0;31m"
@@ -15,6 +15,7 @@ BLUE="\033[0;34m"
 END="\033[0m"
 #
 ### SYSTEM #
+#
 VER=$(cat /etc/debian_version)
 INT_IP=$(ip -4 address show)
 HOSTNAME=$(cat /etc/hostname)
