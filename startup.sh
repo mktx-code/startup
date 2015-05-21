@@ -38,14 +38,13 @@ sleep 2
 echo -e "$ULINE_GRN########## SYSTEM INFO ##########$END"
 sleep 2
 echo -e "$ULINE_GRN########## TODAYS DATE ##########$END"
-$BLUE$(date)$END
-echo -e $ULINE_YLW"Last login from: $BLUE$(cat /var/log/lastlog | cut -b 9-)$END"$END
-echo -e $ULINE_YLW"Currently logged in:"$END
-echo -e "$BLUE$(who -H | column -t)$END"
-echo -e $GRN"Press enter to continue."$END
+echo -e "$BLUE########## $(date) ##########$END"
+echo -e "$ULINE_GRN########## LOGGED IN NOW ##########$END"
+echo -e "$BLUE##########\n$(who -H | column -t)\n##########$END"
+echo -e $YLW"Press enter to continue."$END
   read
-echo -e $ULINE_YLW"Last 5 logins:"$END
-echo -e "$BLUE$(last -n 5 | column -t)$END"
+echo -e "$ULINE_GRN########## LAST 5 LOGINS ##########$END"
+echo -e "$BLUE##########\n$(last -n 5 | column -t)\n##########$END"
 echo -e $GRN"Press enter to continue."$END
   read
 echo -e $ULINE_YLW"Kernel info:$END $BLUE$(uname -s -r)"$END
