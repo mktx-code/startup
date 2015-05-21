@@ -43,50 +43,50 @@ sleep 1
 echo -e $BLUE$(cat /var/log/lastlog | cut -b 9-)$END
 echo -e $YLW"Currently logged in:$END"
 sleep 1
-echo -e $BLUE$(who -H)$END
-echo -e $YLW"Press enter to continue."$END
+$BLUE $(who -H) $END
+echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Last 10 logins:"$END
+echo -e $YLW"Last 5 logins:"$END
 sleep 1
-echo -e $BLUE$(last -n 10)$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $BLUE$(last -n 5)$END
+echo -e $GRN"Press enter to continue."$END
   read
 echo -e $YLW"Kernel info:"$END
 sleep 1
 echo -e $BLUE$(uname -s -r)$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 echo -e $YLW"Version:$END"
 sleep 1
 echo -e $BLUE$VER$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 echo -e $YLW"Free space:"$END
 sleep 1
 echo -e $BLUE$(free)$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 wget -q wtfismyip.com/text -O /tmp/ip
 echo -e $YLW"External IP:"$END
 sleep 1
 echo -e $BLUE$(cat /tmp/ip)$END
 rm -f /tmp/ip
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 echo -e $YLW"Internal IP:"$END
 sleep 1
 echo -e $BLUE"$INT_IP"$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 echo -e $YLW"Network routing:"$END
 sleep 1
 echo -e $BLUE$NET_ROUTE$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 echo -e $YLW"Interface traffic:"$END
 sleep 1
 echo -e $BLUE$IFACE_TRAFFIC$END
-echo -e $YLW"Press enter to continue."$END
+echo -e $GRN"Press enter to continue."$END
   read
 #
 ######### CHECK FOR ROOT #
