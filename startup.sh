@@ -9,9 +9,11 @@ set -e
 ### COLORS #
 #
 YLW="\033[0;33m"
-GRN="\033[32;0m"
+ULINE_YLW="\033[4;33m"
+GRN="\033[0;32m"
+ULINE_GRN="\033[4;32m"
 RED="\033[0;31m"
-BLUE="\033[0;34m"
+BLUE="\033[0;36m"
 END="\033[0m"
 #
 ### SYSTEM #
@@ -20,72 +22,56 @@ VER=$(cat /etc/debian_version)
 INT_IP=$(ip -4 address show)
 HOSTNAME=$(cat /etc/hostname)
 DNS_IP=$(sed -e '/^$/d' /etc/resolv.conf | awk '{if (tolower($1)=="nameserver") print $2}')
-NET_ROUTE=$(netstat -nr)
-IFACE_TRAFFIC=$(netstat -i)
+NET_ROUTE=$(netstat -nr | column -t)
+IFACE_TRAFFIC=$(netstat -i | column -t)
 #
 ### ETC #
 #
 #
 ######### PRINT WELCOME #
 #
-echo -e $YLW"Welcome to the startup script,$END $BLUE$USER@$HOSTNAME$END\n"
-sleep 1
+echo -e "$ULINE_GRN########## HELLO $USER@$HOSTNAME ##########$END"
+sleep 2
 #
 ######### SYS INFO #
 #
-echo -e $YLW"Here is some system information:"$END
+echo -e "$ULINE_GRN########## SYSTEM INFO ##########$END"
 sleep 2
-echo -e $YLW"Date:"$END
-sleep 1
-echo -e $END$BLUE$(date)$END
-echo -e $YLW"Last login from:$END"
-sleep 1
-echo -e $BLUE$(cat /var/log/lastlog | cut -b 9-)$END
-echo -e $YLW"Currently logged in:$END"
-sleep 1
-$BLUE $(who -H) $END
+echo -e "$ULINE_GRN########## TODAYS DATE ##########$END"
+$BLUE$(date)$END
+echo -e $ULINE_YLW"Last login from: $BLUE$(cat /var/log/lastlog | cut -b 9-)$END"$END
+echo -e $ULINE_YLW"Currently logged in:"$END
+echo -e "$BLUE$(who -H | column -t)$END"
 echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Last 5 logins:"$END
-sleep 1
-echo -e $BLUE$(last -n 5)$END
+echo -e $ULINE_YLW"Last 5 logins:"$END
+echo -e "$BLUE$(last -n 5 | column -t)$END"
 echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Kernel info:"$END
-sleep 1
-echo -e $BLUE$(uname -s -r)$END
+echo -e $ULINE_YLW"Kernel info:$END $BLUE$(uname -s -r)"$END
+echo -e $ULINE_YLW"Version:$END $BLUE$VER$END"
 echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Version:$END"
-sleep 1
-echo -e $BLUE$VER$END
+echo -e $ULINE_YLW"Free space:"$END
+echo -e "$BLUE$(free | column -t)$END"
 echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Free space:"$END
-sleep 1
-echo -e $BLUE$(free)$END
-echo -e $GRN"Press enter to continue."$END
-  read
+echo -e $YLW"Retrieving external ip..."$END
 wget -q wtfismyip.com/text -O /tmp/ip
-echo -e $YLW"External IP:"$END
 sleep 1
-echo -e $BLUE$(cat /tmp/ip)$END
+echo -e $ULINE_YLW"External IP:$END $BLUE$(cat /tmp/ip)"$END
 rm -f /tmp/ip
+echo -e $ULINE_YLW"Internal IP:$END\n$BLUE$INT_IP"$END
 echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Internal IP:"$END
+echo -e $ULINE_YLW"Network routing:"$END
 sleep 1
-echo -e $BLUE"$INT_IP"$END
+echo -e "$BLUE$NET_ROUTE$END"
 echo -e $GRN"Press enter to continue."$END
   read
-echo -e $YLW"Network routing:"$END
+echo -e $ULINE_YLW"Interface traffic:"$END
 sleep 1
-echo -e $BLUE$NET_ROUTE$END
-echo -e $GRN"Press enter to continue."$END
-  read
-echo -e $YLW"Interface traffic:"$END
-sleep 1
-echo -e $BLUE$IFACE_TRAFFIC$END
+echo -e "$BLUE$IFACE_TRAFFIC$END"
 echo -e $GRN"Press enter to continue."$END
   read
 #
@@ -132,7 +118,7 @@ if [[ $VER < 8 ]]; then
               echo -e $BLUE"$(cat /etc/apt/preferences)"$END
 else
     echo -e $YLW"Your current sources are:"$END
-    echo -e $BLUE$(cat /etc/apt/sources.list)$END
+    echo -e "$BLUE$(cat /etc/apt/sources.list | column -t)$END"
     sleep 5
     echo -e $YLW"Do you want to change them to:"$END
     echo -e $BLUE"deb http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb-src http://ftp.us.debian.org/debian jessie main non-free contrib\ndeb http://security.debian.org/ jessie/updates main non-free contrib\ndeb-src http://security.debian.org/ jessie/updates main non-free contrib"$END
@@ -173,10 +159,14 @@ apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
 SSH_CONF=/etc/ssh/sshd_config
 mv $SSH_CONF /etc/ssh/sshd_config.bak
 touch $SSH_CONF
-echo -e $YLW"Time to harden ssh. We will backup your original configuration file at:"$END
-echo -e $GRN"/etc/ssh/sshd_config.bak"$END
-echo -e $YLW"Please answer the following questions to populate the rest of your sshd_config.\nIf you don't know the answers, I will always phrase the questions so that $(echo '"Y"') is the most sensible.\nYou must spell the word $(echo '"no"') exactly or the script will assume a $(echo '"yes"') answer."$END
-sleep 5
+echo -e $YLW"Time to harden ssh."$END; sleep 1 
+echo -e $YLW"We will backup your original configuration file at:"$END
+echo -e $GRN"/etc/ssh/sshd_config.bak"$END; sleep 2
+echo -e $YLW"Please answer the following questions to populate the rest of your sshd_config."$END; sleep 1
+echo -e $YLW"If you don't know the answers, I will always phrase the questions so that $(echo '"Y"') is the most sensible."$END; sleep 1
+echo -e $YLW"You must spell the word $(echo '"no"') exactly or the script will assume a $(echo '"yes"') answer."$END
+echo -e $GRN"Press enter to continue"$END
+  read
 #
 ### PORT #
 #
