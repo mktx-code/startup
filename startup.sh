@@ -30,48 +30,50 @@ IFACE_TRAFFIC=$(netstat -i | column -t)
 #
 ######### PRINT WELCOME #
 #
-echo -e "$ULINE_GRN########## HELLO $USER@$HOSTNAME ##########$END"
+echo -e "     $ULINE_GRN########## HELLO $USER@$HOSTNAME ##########$END"
 sleep 2
 #
 ######### SYS INFO #
 #
-echo -e "$ULINE_GRN########## SYSTEM INFO ##########$END"
+echo -e "     $ULINE_GRN########## SYSTEM INFO ##########$END"
 sleep 2
-echo -e "$ULINE_GRN########## TODAYS DATE ##########$END"
-echo -e "$BLUE########## $(date) ##########$END"
-echo -e "$ULINE_GRN########## LOGGED IN NOW ##########$END"
+echo -e "     $ULINE_GRN########## TODAYS DATE ##########$END"
+echo -e "$BLUE##########\n$(date)\n##########$END"
+echo -e "     $ULINE_GRN########## LOGGED IN NOW ##########$END"
 echo -e "$BLUE##########\n$(who -H | column -t)\n##########$END"
 echo -e $YLW"Press enter to continue."$END
   read
-echo -e "$ULINE_GRN########## LAST 5 LOGINS ##########$END"
+echo -e "     $ULINE_GRN########## LAST 5 LOGINS ##########$END"
 echo -e "$BLUE##########\n$(last -n 5 | column -t)\n##########$END"
-echo -e $GRN"Press enter to continue."$END
+echo -e $YLW"Press enter to continue."$END
   read
-echo -e $ULINE_YLW"Kernel info:$END $BLUE$(uname -s -r)"$END
-echo -e $ULINE_YLW"Version:$END $BLUE$VER$END"
-echo -e $GRN"Press enter to continue."$END
+echo -e "     $ULINE_GRN########## KERNEL ##########$END"
+echo -e "$BLUE##########\n$(uname -s -r) VERSION:$VER\n##########$END"
+echo -e $YLW"Press enter to continue."$END
   read
-echo -e $ULINE_YLW"Free space:"$END
-echo -e "$BLUE$(free | column -t)$END"
-echo -e $GRN"Press enter to continue."$END
+echo -e "     $ULINE_GRN########## FREE SPACE ##########$END"
+echo -e "$BLUE##########\n$(free -h | column -t)\n##########$END"
+echo -e $YLW"Press enter to continue."$END
   read
-echo -e $YLW"Retrieving external ip..."$END
+echo -e $GRN"Retrieving external ip..."$END
 wget -q wtfismyip.com/text -O /tmp/ip
 sleep 1
-echo -e $ULINE_YLW"External IP:$END $BLUE$(cat /tmp/ip)"$END
+echo -e "     $ULINE_GRN########## EXTERNAL IP ##########$END"
+echo -e "$BLUE##########\n$(cat /tmp/ip)\n##########$END"
 rm -f /tmp/ip
-echo -e $ULINE_YLW"Internal IP:$END\n$BLUE$INT_IP"$END
-echo -e $GRN"Press enter to continue."$END
+echo -e "     $ULINE_GRN########## INTERNAL IP ##########$END"
+echo -e "$BLUE##########\n$INT_IP\n##########$END"
+echo -e $YLW"Press enter to continue."$END
   read
-echo -e $ULINE_YLW"Network routing:"$END
+echo -e "     $ULINE_GRN########## NETWORK ROUTING ##########$END"
 sleep 1
-echo -e "$BLUE$NET_ROUTE$END"
-echo -e $GRN"Press enter to continue."$END
+echo -e "$BLUE##########\n$NET_ROUTE\n##########$END"
+echo -e $YLW"Press enter to continue."$END
   read
-echo -e $ULINE_YLW"Interface traffic:"$END
+echo -e "     $ULINE_GRN########## INTERFACE TRAFFIC ##########$END"
 sleep 1
-echo -e "$BLUE$IFACE_TRAFFIC$END"
-echo -e $GRN"Press enter to continue."$END
+echo -e "$BLUE##########\n$IFACE_TRAFFIC\n##########$END"
+echo -e $YLW"Press enter to continue."$END
   read
 #
 ######### CHECK FOR ROOT #
@@ -88,7 +90,7 @@ if [[ $VER < 8 ]]; then
     echo -e $YLW"Since your version is$END $BLUE$VER$END$YLW."$END
     echo -e $YLW"Do you want to upgrade to jessie(8) ?"$END
     echo -e $RED"This may break your system. Answer no if you're scared."$END
-    echo -e $YLW"(Y/n)"$END
+    echo -e $YLW"(Y/no)"$END
       read UPDATE_SOURCES
         if [[ $UPDATE_SOUECES = no ]]; then
               echo -e $YLW"Ok. Leaving your sources as they were.\nYour sources are:"$END
@@ -151,7 +153,13 @@ fi
 #
 ######### UPGRADE PACKAGES #
 #
-apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
+echo -e $YLW"Do you want to upgrade your current packages? (Y/no)"$END
+  read UPGRADE_CURRENT_PACKAGES
+    if [[ $UPGRADE_CURRENT_PACKAGES = no || $UPGRADE_CURRENT_PACKAGES = n ]]; then
+        sleep 1
+    else    
+        apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
+    fi
 #
 ######### HARDEN SSH #
 #
@@ -381,7 +389,7 @@ echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script n
 #
 ##### GET DETAILS #
 #
-echo -e $YLW"Is this a headless (no gui) server? If you don't answer $(echo '"no"') here you will not be offered gui only packages. (Y/no)"$END
+echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
   read INSTALL_GUIS
       if [[ $INSTALL_GUIS = no ]]; then
 #
@@ -472,52 +480,70 @@ echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm
 #
 echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
   read BITCOINER
-      if [[ $BITCOINER = no ]]; then
-          sleep 1
-      elif [[ $INSTALL_GUIS != no ]]; then
-          echo -e $YLW"Install bitcoin-core? (Y/no)"$END
-            read INSTALL_BTC_CORE
-              if [[ $INSTALL_BTC_CORE = no ]]; then
-                  sleep 1
-              else
-                  echo -e $YLW"What user will run bitcoin? If the user doesn't exist it will be created."$END
-                    read BTC_USER
-                    BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
-                      if [[ $BTC_USER_EXIST = 0 ]]; then
-                          adduser $BTC_USER
-                          adduser $BTC_USER sudo
-                          mkdir /home/$BTC_USER/.bitcoin
-                      else
-                          sleep 1
-                      fi
-                  echo $YLW"You can build from source or download from bitcoin.org.\n$REDBuilding from source takes a long time and may break this script.$END\n$YLWDo you want to download directly from bitcoin.org? (Y/no)"$END
-                    read BTC_DIRECT_DL
-                      if [[ $BTC_DIRECT_DL = no ]]; then
-                          echo -e $YLW"Installing dependencies to build bitcoin core"$END
-                          sleep 8
-                          apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
-                          mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
-                          echo -e $YLW"Getting source code from github."$END
-                          sleep 8
-                          git clone https://github.com/bitcoin/bitcoin
-                          cd bitcoin
-                          git checkout master
-                          echo -e $YLW"Building/installing bitcoin core now. You may want to take a nap."$END
-                          sleep 8
-                          ./autogen.sh
-                          ./configure
-                          make
-                          sudo make install
-                      else
-                          sleep 1
-                      fi
-              fi
-      fi
+    if [[ $BITCOINER = no ]]; then
+        sleep 1
+    elif [[ $INSTALL_GUIS != no ]]; then
+        echo -e $YLW"Install bitcoin-core? (Y/no)"$END
+          read INSTALL_BTC_CORE
+            if [[ $INSTALL_BTC_CORE = no ]]; then
+                echo -e $YLW"Install electrum? (Y/no)"$END
+                  read ELECTRUM_GUI
+                    if
+                    else
+                    fi
+            else
+                echo -e $YLW"What user will run bitcoin? If the user doesn't exist it will be created."$END
+                  read BTC_USER
+                  BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
+                    if [[ $BTC_USER_EXIST = 0 ]]; then
+                        adduser $BTC_USER
+                        adduser $BTC_USER sudo
+                        mkdir /home/$BTC_USER/.bitcoin
+                    else
+                        sleep 1
+                    fi
+                echo $YLW"You can build from source or download from bitcoin.org.\n$REDBuilding from source takes a long time and may break this script.$END\n$YLWDo you want to download directly from bitcoin.org? (Y/no)"$END
+                  read BTC_DIRECT_DL
+                    if [[ $BTC_DIRECT_DL = no ]]; then
+                        echo -e $YLW"Installing dependencies to build bitcoin core"$END
+                        sleep 8
+                        apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
+                        mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
+                        echo -e $YLW"Getting source code from github."$END
+                        sleep 8
+                        git clone https://github.com/bitcoin/bitcoin
+                        cd bitcoin
+                        git checkout master
+                        echo -e $YLW"Building/installing bitcoin core now. You may want to take a nap."$END
+                        sleep 8
+                        ./autogen.sh
+                        ./configure
+                        make
+                        sudo make install
+                    else
+                        echo -e $YLW"Getting ready to download bitcoin from https://bitcoin.org/. Do you need 64 bit or 32 bit? (64/32)"$END
+                          read BTC_BITS
+                            if [[ $BTC_BITS = 64 ]]; then
+                                echo -e $GRN"Downloading 64 bit bitcoin."$END
+                                wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux64.tar.gz
+                                tar -xf bitcoin*.tar.gz
+                                rm -rf *.tar.gz
+                                mv bitcoin* /home/$BTC_USER/
+                            else
+                                echo -e $GRN"Downloading 32 bit bitcoin."$END
+                                wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux32.tar.gz
+                                tar -xf bitcoin*.tar.gz
+                                rm -rf *.tar.gz
+                                mv bitcoin* /home/$BTC_USER/
+                            fi    
+                    fi
+            fi
+    fi
                   
-exit 0     
+exit 0    
 ## To Do.
 #  GPG
-#  Crunchbang Paranoid Security
+# 
 #  
 #
 #
