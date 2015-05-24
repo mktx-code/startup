@@ -591,7 +591,10 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
                                 rm -rf *.tar.gz
                                 mv bitcoin* /home/"$BTC_USER"/
                             fi
-            fi
+                    fi
+          else
+              sleep 1
+          fi
         echo -e "$YLW""Install electrum-server? (Y/n)""$END"
           read INSTALL_ELECTRUM_SERVER
             if [[ "$INSTALL_ELECTRUM_SERVER" != no ]]; then
