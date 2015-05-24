@@ -379,9 +379,9 @@ echo -e $YLW"This is your new ssh configuration. Please take a moment to review 
 sleep 1
 echo -e $BLUE"$(cat /etc/ssh/sshd_config)"$END
 sleep 5
-echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script now. You can run it again and repopulate the config. If you are happy press enter to continue."$END
+echo -e "$YLW""If you are not happy please type $(echo '"no"') to end the script now. You can run it again and repopulate the config. If you are happy press enter to continue.""$END"
   read SSH_HAPPY
-    if [[ $SSH_HAPPY = no ]]; then
+    if [[ "$SSH_HAPPY" = "no" ]]; then
         exit 0
     fi
 #
@@ -389,15 +389,15 @@ echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script n
 #
 ##### GET DETAILS #
 #
-echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
+echo -e "$YLW""Do you want graphical programs installed? (Y/no)""$END"
   read INSTALL_GUIS
-      if [[ $INSTALL_GUIS != no ]]; then
+      if [[ "$INSTALL_GUIS" != "no" ]]; then
 #
 ### MOZILLA REPO#
 #
-          echo -e $YLW"Do you want to add the mozilla iceweasel repo? (Y/no)"$END
+          echo -e "$YLW""Do you want to add the mozilla iceweasel repo? (Y/no)""$END"
             read ADD_MOZ
-              if [[ $ADD_MOZ = no ]]; then
+              if [[ "$ADD_MOZ" = "no" ]]; then
                   sleep 1
               else
                   echo "deb http://mozilla.debian.net/ jessie-backports iceweasel-release" >> /etc/apt/sources.list
@@ -406,16 +406,16 @@ echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
                   gpg --export -a 06C4AE2A | apt-key add -
                   echo -e "\nPackage: *\nPin: release o=Mozilla,n=jessie-backports\nPin-Priority: 860\n\n" > /etc/apt/preferences
               fi
-              echo -e $YLW"Add iceweasel? (Y/no)"$END
+              echo -e "$YLW""Add iceweasel? (Y/no)""$END"
                 read INSTALL_ICEWSL
-              if [[ $INSTALL_ICEWSL = no ]]; then
+              if [[ "$INSTALL_ICEWSL" = "no" ]]; then
                   sleep 1
               else
                   apt-get update
                   apt-get install iceweasel -y
-                  echo -e $YLW"Install sandfox? (Y/no)"$END
+                  echo -e "$YLW""Install sandfox? (Y/no)""$END"
                     read INSTALL_SFOX
-                      if [[ $INSTALL_SFOX = no ]]; then
+                      if [[ "$INSTALL_SFOX" = "no" ]]; then
                           sleep 1
                       else
                           echo -e "\ndeb http://ignorantguru.github.com/debian/ unstable main\n" >> /etc/apt/sources.list
@@ -426,16 +426,16 @@ echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
                           apt-get install sandfox -y
                       fi
             fi
-         echo -e $YLW"Install pidgin/otr? (Y/no)"$END
+         echo -e "$YLW""Install pidgin/otr? (Y/no)""$END"
            read INSTALL_PIDGIN
-             if [[ $INSTALL_PIDGIN = no ]]; then
+             if [[ "$INSTALL_PIDGIN" = "no" ]]; then
                   sleep 1
              else
                   apt-get install pidgin pidgin-otr pidgin-plugin-pack pidgin-privacy-please -y
              fi
-         echo -e $YLW"Install geany, keepassx, and claws-mail? (Y/n)"$END
+         echo -e "$YLW""Install geany, keepassx, and claws-mail? (Y/n)""$END"
            read INSTALL_SUGGESTED_GUIS
-             if [[ $INSTALL_SUGGESTED_GUIS = no ]]; then
+             if [[ "$INSTALL_SUGGESTED_GUIS" = "no" ]]; then
                   sleep 1
              else
                   apt-get install geany keepassx claws-mail -y
