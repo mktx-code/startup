@@ -549,7 +549,7 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
             if  [[ "$INSTALL_BITCOIN_HEADLESS" != "no" ]]; then
                 echo -e "$YLW""What user will run bitcoin? If the user doesn't exist it will be created.""$END"
                   read BTC_USER
-                  BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
+                  BTC_USER_EXIST=$(ls /etc/passwd | grep -c "$BTC_USER")
                     if [[ "$BTC_USER_EXIST" = "0" ]]; then
                         adduser "$BTC_USER"
                         adduser "$BTC_USER" sudo
@@ -559,42 +559,42 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
                     fi
                 echo -e "$YLW""You can build from source or download from bitcoin.org.\n"$RED"Building from source takes a long time and may break this script."$END"\n"$YLW"Do you want to download directly from bitcoin.org? (Y/no)""$END"
                   read BTC_DIRECT_DL
-                    if [[ "$BTC_DIRECT_DL" = no ]]; then
-                        echo -e "$YLW""Installing dependencies to build bitcoin core""$END"
-                        sleep 8
-                        apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
-                        mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
-                        echo -e "$YLW""Getting source code from github.""$END"
-                        sleep 8
-                        git clone https://github.com/bitcoin/bitcoin
-                        cd bitcoin
-                        git checkout master
-                        echo -e "$YLW""Building/installing bitcoin core now. You may want to take a nap.""$END"
-                        sleep 8
-                        ./autogen.sh
-                        ./configure
-                        make
-                        sudo make install
-                    else
-                        echo -e "$YLW""Getting ready to download bitcoin from https://bitcoin.org/. Do you need 64 bit or 32 bit? (64/32)""$END"
-                          read BTC_BITS
-                            if [[ "$BTC_BITS" = "64" ]]; then
-                                echo -e "$GRN""Downloading 64 bit bitcoin.""$END"
-                                wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux64.tar.gz
-                                tar -xf bitcoin*.tar.gz
-                                rm -rf *.tar.gz
-                                mv bitcoin* /home/"$BTC_USER"/
-                            else
-                                echo -e "$GRN""Downloading 32 bit bitcoin.""$END"
-                                wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux32.tar.gz
-                                tar -xf bitcoin*.tar.gz
-                                rm -rf *.tar.gz
-                                mv bitcoin* /home/"$BTC_USER"/
-                            fi
-                    fi
-          else
-              sleep 1
-          fi
+                     if [[ "$BTC_DIRECT_DL" = no ]]; then
+                          echo -e "$YLW""Installing dependencies to build bitcoin core""$END"
+                          sleep 8
+                          apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
+                          mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
+                          echo -e "$YLW""Getting source code from github.""$END"
+                          sleep 8
+                          git clone https://github.com/bitcoin/bitcoin
+                          cd bitcoin
+                          git checkout master
+                          echo -e "$YLW""Building/installing bitcoin core now. You may want to take a nap.""$END"
+                          sleep 8
+                          ./autogen.sh
+                          ./configure
+                          make
+                          sudo make install
+                     else
+                          echo -e "$YLW""Getting ready to download bitcoin from https://bitcoin.org/. Do you need 64 bit or 32 bit? (64/32)""$END"
+                            read BTC_BITS
+                              if [[ "$BTC_BITS" = "64" ]]; then
+                                   echo -e "$GRN""Downloading 64 bit bitcoin.""$END"
+                                   wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux64.tar.gz
+                                   tar -xf bitcoin*.tar.gz
+                                   rm -rf *.tar.gz
+                                   mv bitcoin* /home/"$BTC_USER"/
+                              else
+                                   echo -e "$GRN""Downloading 32 bit bitcoin.""$END"
+                                   wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux32.tar.gz
+                                   tar -xf bitcoin*.tar.gz
+                                   rm -rf *.tar.gz
+                                   mv bitcoin* /home/"$BTC_USER"/
+                              fi
+                     fi
+            else
+                 sleep 1
+            fi
         echo -e "$YLW""Install electrum-server? (Y/n)""$END"
           read INSTALL_ELECTRUM_SERVER
             if [[ "$INSTALL_ELECTRUM_SERVER" != no ]]; then
