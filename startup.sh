@@ -549,17 +549,12 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
             if  [[ "$INSTALL_BITCOIN_HEADLESS" != "no" ]]; then
                 echo -e "$YLW""What user will run bitcoin? If the user doesn't exist it will be created.""$END"
                   read BTC_USER
-                  BTC_USER_EXIST="$(ls /etc/passwd | grep -c "$BTC_USER")"
-                    while [[ "$BTC_USER_EXIST" != "0" ]]
-                    do
-                        echo -e "$RED""User already exists. Pick a new one.""$END"
-                        echo -e "$YLW""New user:""$END"
-                          read BTC_USER
-                    done
-        adduser "$BTC_USER"
-        adduser "$BTC_USER" sudo
-        mkdir /home/"$BTC_USER"/.bitcoin
-        sleep 1
+                      adduser "$BTC_USER"
+                      adduser "$BTC_USER" sudo
+                      mkdir /home/"$BTC_USER"/.bitcoin
+            else
+                      sleep 1
+            fi
         echo -e "$YLW""You can build from source or download from bitcoin.org.\n"$RED"Building from source takes a long time and may break this script."$END"\n"$YLW"Do you want to download directly from bitcoin.org? (Y/no)""$END"
           read BTC_DIRECT_DL
               if [[ "$BTC_DIRECT_DL" = no ]]; then
