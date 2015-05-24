@@ -595,23 +595,24 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
                 sleep 1
             fi
         echo -e "$YLW""Install electrum-server? (Y/n)""$END"
-                  read INSTALL_ELECTRUM_SERVER
-                    if [[ "$INSTALL_ELECTRUM_SERVER" != no ]]; then
-                        apt-get –y install python-setuptools python-openssl python-leveldb libleveldb-dev
-                        easy_install jsonrpclib irc plyvel
-                        git clone https://github.com/spesmilo/electrum-server.git
-                        cd electrum-server
-                        ./configure
-                        python setup.py install    
-                    else
-                        sleep 1
-                    fi
-        echo -e "$YLW""Install BX tool? (Y/no)""$END"
-                          read INSTALL_BX
-                            if [[ "$INSTALL_BX" != "no" ]]; then
-                                apt-get -y install g++-4.8
-                                
+          read INSTALL_ELECTRUM_SERVER
+            if [[ "$INSTALL_ELECTRUM_SERVER" != no ]]; then
+                apt-get –y install python-setuptools python-openssl python-leveldb libleveldb-dev
+                easy_install jsonrpclib irc plyvel
+                git clone https://github.com/spesmilo/electrum-server.git
+                cd electrum-server
+                ./configure
+                python setup.py install    
+            else
+                sleep 1
             fi
+        echo -e "$YLW""Install BX tool? (Y/no)""$END"
+          read INSTALL_BX
+              if [[ "$INSTALL_BX" != "no" ]]; then
+                  apt-get -y install g++-4.8
+              else
+                  sleep 1
+              fi
     fi
                   
 exit 0    
