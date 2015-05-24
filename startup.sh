@@ -444,9 +444,9 @@ echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
 #
 ### TOR REPO #
 #
-echo -e $YLW"Do you want to add the torproject repos? (Y/no)"$END
+echo -e "$YLW""Do you want to add the torproject repos? (Y/no)""$END"
   read TOR_REPO
-    if [[ $TOR_REPO = no ]]; then
+    if [[ "$TOR_REPO" = "no" ]]; then
         sleep 1
     else
         echo "deb http://deb.torproject.org/torproject.org jessie main" >> /etc/apt/sources.list
@@ -455,18 +455,18 @@ echo -e $YLW"Do you want to add the torproject repos? (Y/no)"$END
         gpg --check-sigs 0x886DDD89
         gpg --export -a 886DDD89 | apt-key add -
         echo -e "\nPackage: *\nPin: release o=TorProject,n=jessie\nPin-Priority: 900\n\n" >> /etc/apt/preferences
-        echo -e $YLW"Install tor, tor-arm, privoxy, and obfsproxy? (Y/no)"$END
+        echo -e "$YLW""Install tor, tor-arm, privoxy, and obfsproxy? (Y/no)""$END"
           read INSTALL_TOR
-            if [[ $INSTALL_TOR = no ]]; then
+            if [[ "$INSTALL_TOR" = "no" ]]; then
                 sleep 1
             else
                 apt-get update
                 apt-get install deb.torproject.org -y; apt-get install tor privoxy obfsproxy tor-arm -y
             fi
     fi
-echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm2, cryptsetup, badblocks, ntp, and ntpdate? (Y/no)"$END
+echo -e "$YLW""Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm2, cryptsetup, badblocks, ntp, and ntpdate? (Y/no)""$END"
   read INSTALL_SUGGESTED_DEFAULTS
-      if [[ $INSTALL_SUGGESTED_DEFAULTS = no ]]; then
+      if [[ "$INSTALL_SUGGESTED_DEFAULTS" = "no" ]]; then
           sleep 1
       else
           apt-get install ntp ntpdate screen git haveged curl atop pwgen secure-delete lvm2 cryptsetup -y
@@ -478,63 +478,66 @@ echo -e $YLW"Install screen, git, haveged, curl, atop, pwgen, secure-delete, lvm
 #
 ### BITCOIN #
 #
-echo -e $YLW"Are you a bitcoiner? (Y/no)"$END
+echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
   read BITCOINER
-    if [[ $BITCOINER = no ]]; then
+    if [[ "$BITCOINER" = "no" ]]; then
         sleep 1
-    elif [[ $INSTALL_GUIS != no ]]; then
-        echo -e $YLW"Install bitcoin-core? (Y/no)"$END
+    elif [[ "$INSTALL_GUIS" != "no" ]]; then
+        echo -e "$YLW""Install bitcoin-core? (Y/no)""$END"
           read INSTALL_BTC_CORE
-            if [[ $INSTALL_BTC_CORE = no ]]; then
-                echo -e $YLW"Install electrum? (Y/no)"$END
+            if [[ "$INSTALL_BTC_CORE" = "no" ]]; then
+                echo -e "$YLW""Install electrum? (Y/no)""$END"
                   read ELECTRUM_GUI
-                    if
-                    else
-                    fi
-            else
-                echo -e $YLW"What user will run bitcoin? If the user doesn't exist it will be created."$END
-                  read BTC_USER
-                  BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
-                    if [[ $BTC_USER_EXIST = 0 ]]; then
-                        adduser $BTC_USER
-                        adduser $BTC_USER sudo
-                        mkdir /home/$BTC_USER/.bitcoin
+                    if [[ "$ELECTRUM_GUI" != "no" ]]; then
+                        apt-get install python-qt4 python-pip
+                        sudo pip install https://download.electrum.org/Electrum-2.2.tar.gz
                     else
                         sleep 1
                     fi
-                echo $YLW"You can build from source or download from bitcoin.org.\n$REDBuilding from source takes a long time and may break this script.$END\n$YLWDo you want to download directly from bitcoin.org? (Y/no)"$END
+            else
+                echo -e "$YLW""What user will run bitcoin? If the user doesn't exist it will be created.""$END"
+                  read BTC_USER
+                  BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
+                    if [[ "$BTC_USER_EXIST" = "0" ]]; then
+                        adduser "$BTC_USER"
+                        adduser "$BTC_USER" sudo
+                        mkdir /home/"$BTC_USER"/.bitcoin
+                    else
+                        sleep 1
+                    fi
+                echo "$YLW""You can build from source or download from bitcoin.org.\n"$RED"Building from source takes a long time and may break this script."$END"\n"$YLW"Do you want to download directly from bitcoin.org? (Y/no)""$END"
                   read BTC_DIRECT_DL
-                    if [[ $BTC_DIRECT_DL = no ]]; then
-                        echo -e $YLW"Installing dependencies to build bitcoin core"$END
+                    if [[ "$BTC_DIRECT_DL" = no ]]; then
+                        echo -e "$YLW""Installing dependencies to build bitcoin core""$END"
                         sleep 8
                         apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
                         mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
-                        echo -e $YLW"Getting source code from github."$END
+                        echo -e "$YLW""Getting source code from github.""$END"
                         sleep 8
                         git clone https://github.com/bitcoin/bitcoin
                         cd bitcoin
                         git checkout master
-                        echo -e $YLW"Building/installing bitcoin core now. You may want to take a nap."$END
+                        echo -e "$YLW""Building/installing bitcoin core now. You may want to take a nap.""$END"
                         sleep 8
                         ./autogen.sh
                         ./configure
                         make
                         sudo make install
                     else
-                        echo -e $YLW"Getting ready to download bitcoin from https://bitcoin.org/. Do you need 64 bit or 32 bit? (64/32)"$END
+                        echo -e "$YLW""Getting ready to download bitcoin from https://bitcoin.org/. Do you need 64 bit or 32 bit? (64/32)""$END"
                           read BTC_BITS
-                            if [[ $BTC_BITS = 64 ]]; then
-                                echo -e $GRN"Downloading 64 bit bitcoin."$END
+                            if [[ "$BTC_BITS" = "64" ]]; then
+                                echo -e "$GRN""Downloading 64 bit bitcoin.""$END"
                                 wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux64.tar.gz
                                 tar -xf bitcoin*.tar.gz
                                 rm -rf *.tar.gz
-                                mv bitcoin* /home/$BTC_USER/
+                                mv bitcoin* /home/"$BTC_USER"/
                             else
-                                echo -e $GRN"Downloading 32 bit bitcoin."$END
+                                echo -e "$GRN""Downloading 32 bit bitcoin.""$END"
                                 wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux32.tar.gz
                                 tar -xf bitcoin*.tar.gz
                                 rm -rf *.tar.gz
-                                mv bitcoin* /home/$BTC_USER/
+                                mv bitcoin* /home/"$BTC_USER"/
                             fi    
                     fi
             fi
