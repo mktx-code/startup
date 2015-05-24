@@ -183,7 +183,7 @@ echo -e $YLW"Please select the new port for ssh (default is 22).\nIt should be a
   read SSH_PORT
       if [[ $SSH_PORT -ge 1 || $SSH_PORT -le 99999 ]]; then
           echo -e "\nPort $SSH_PORT\n" > $SSH_CONF
-      elif [[ -z $SSH_PORT ]]; then
+      else
           echo -e $RED"THAT WAS NOT AN ACCEPTABLE PORT!!!! RE-RUN THE SCRIPT AND PUT SOMETHING SENSIBLE HERE BEFORE YOU LOCK YOURSELF OUT!!"$END
           exit 0
       fi
@@ -391,7 +391,7 @@ echo -e $YLW"If you are not happy please type $(echo '"no"') to end the script n
 #
 echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
   read INSTALL_GUIS
-      if [[ $INSTALL_GUIS = no ]]; then
+      if [[ $INSTALL_GUIS != no ]]; then
 #
 ### MOZILLA REPO#
 #
@@ -426,20 +426,22 @@ echo -e $YLW"Do you want graphical programs installed? (Y/no)"$END
                           apt-get install sandfox -y
                       fi
             fi
-      echo -e $YLW"Install pidgin/otr? (Y/no)"$END
-        read INSTALL_PIDGIN
-            if [[ $INSTALL_PIDGIN = no ]]; then
-                sleep 1
-            else
-                apt-get install pidgin pidgin-otr pidgin-plugin-pack pidgin-privacy-please -y
-            fi
-      echo -e $YLW"Install geany, keepassx, and claws-mail? (Y/n)"$END
-        read INSTALL_SUGGESTED_GUIS
-            if [[ $INSTALL_SUGGESTED_GUIS = no ]]; then
-                sleep 1
-            else
-                apt-get install geany keepassx claws-mail -y
-            fi
+         echo -e $YLW"Install pidgin/otr? (Y/no)"$END
+           read INSTALL_PIDGIN
+             if [[ $INSTALL_PIDGIN = no ]]; then
+                  sleep 1
+             else
+                  apt-get install pidgin pidgin-otr pidgin-plugin-pack pidgin-privacy-please -y
+             fi
+         echo -e $YLW"Install geany, keepassx, and claws-mail? (Y/n)"$END
+           read INSTALL_SUGGESTED_GUIS
+             if [[ $INSTALL_SUGGESTED_GUIS = no ]]; then
+                  sleep 1
+             else
+                  apt-get install geany keepassx claws-mail -y
+             fi
+      else
+          sleep 1
       fi
 #
 ### TOR REPO #
@@ -484,8 +486,8 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
         sleep 1
     elif [[ "$INSTALL_GUIS" != "no" ]]; then
         echo -e "$YLW""Install bitcoin-core? (Y/no)""$END"
-          read INSTALL_BTC_CORE
-            if [[ "$INSTALL_BTC_CORE" = "no" ]]; then
+          read INSTALL_BTC_CORE_GUI
+            if [[ "$INSTALL_BTC_CORE_GUI" = "no" ]]; then
                 echo -e "$YLW""Install electrum? (Y/no)""$END"
                   read ELECTRUM_GUI
                     if [[ "$ELECTRUM_GUI" != "no" ]]; then
@@ -505,7 +507,7 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
                     else
                         sleep 1
                     fi
-                echo "$YLW""You can build from source or download from bitcoin.org.\n"$RED"Building from source takes a long time and may break this script."$END"\n"$YLW"Do you want to download directly from bitcoin.org? (Y/no)""$END"
+                echo -e "$YLW""You can build from source or download from bitcoin.org.\n"$RED"Building from source takes a long time and may break this script."$END"\n"$YLW"Do you want to download directly from bitcoin.org? (Y/no)""$END"
                   read BTC_DIRECT_DL
                     if [[ "$BTC_DIRECT_DL" = no ]]; then
                         echo -e "$YLW""Installing dependencies to build bitcoin core""$END"
@@ -540,6 +542,75 @@ echo -e "$YLW""Are you a bitcoiner? (Y/no)""$END"
                                 mv bitcoin* /home/"$BTC_USER"/
                             fi    
                     fi
+            fi
+    else
+        echo -e "$YLW""Install bitcoin core? (Y/no)""$END"
+          read INSTALL_BITCOIN_HEADLESS
+            if  [[ "$INSTALL_BITCOIN_HEADLESS" != "no" ]]; then
+                echo -e "$YLW""What user will run bitcoin? If the user doesn't exist it will be created.""$END"
+                  read BTC_USER
+                  BTC_USER_EXIST=$(grep -ic "$BTC_USER" /etc/passwd)
+                    if [[ "$BTC_USER_EXIST" = "0" ]]; then
+                        adduser "$BTC_USER"
+                        adduser "$BTC_USER" sudo
+                        mkdir /home/"$BTC_USER"/.bitcoin
+                    else
+                        sleep 1
+                    fi
+                echo -e "$YLW""You can build from source or download from bitcoin.org.\n"$RED"Building from source takes a long time and may break this script."$END"\n"$YLW"Do you want to download directly from bitcoin.org? (Y/no)""$END"
+                  read BTC_DIRECT_DL
+                    if [[ "$BTC_DIRECT_DL" = no ]]; then
+                        echo -e "$YLW""Installing dependencies to build bitcoin core""$END"
+                        sleep 8
+                        apt-get install automake pkg-config build-essential libtool autotools-dev autoconf libssl-dev libboost-all-dev libdb-dev libdb++-dev -y
+                        mkdir /root/bitcoinsrc && cd /root/bitcoinsrc
+                        echo -e "$YLW""Getting source code from github.""$END"
+                        sleep 8
+                        git clone https://github.com/bitcoin/bitcoin
+                        cd bitcoin
+                        git checkout master
+                        echo -e "$YLW""Building/installing bitcoin core now. You may want to take a nap.""$END"
+                        sleep 8
+                        ./autogen.sh
+                        ./configure
+                        make
+                        sudo make install
+                    else
+                        echo -e "$YLW""Getting ready to download bitcoin from https://bitcoin.org/. Do you need 64 bit or 32 bit? (64/32)""$END"
+                          read BTC_BITS
+                            if [[ "$BTC_BITS" = "64" ]]; then
+                                echo -e "$GRN""Downloading 64 bit bitcoin.""$END"
+                                wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux64.tar.gz
+                                tar -xf bitcoin*.tar.gz
+                                rm -rf *.tar.gz
+                                mv bitcoin* /home/"$BTC_USER"/
+                            else
+                                echo -e "$GRN""Downloading 32 bit bitcoin.""$END"
+                                wget https://bitcoin.org/bin/bitcoin-core-0.10.2/bitcoin-0.10.2-linux32.tar.gz
+                                tar -xf bitcoin*.tar.gz
+                                rm -rf *.tar.gz
+                                mv bitcoin* /home/"$BTC_USER"/
+                            fi
+            else
+                sleep 1
+            fi
+        echo -e "$YLW""Install electrum-server? (Y/n)""$END"
+                  read INSTALL_ELECTRUM_SERVER
+                    if [[ "$INSTALL_ELECTRUM_SERVER" != no ]]; then
+                        apt-get –y install python-setuptools python-openssl python-leveldb libleveldb-dev
+                        easy_install jsonrpclib irc plyvel
+                        git clone https://github.com/spesmilo/electrum-server.git
+                        cd electrum-server
+                        ./configure
+                        python setup.py install    
+                    else
+                        sleep 1
+                    fi
+        echo -e "$YLW""Install BX tool? (Y/no)""$END"
+                          read INSTALL_BX
+                            if [[ "$INSTALL_BX" != "no" ]]; then
+                                apt-get -y install g++-4.8
+                                
             fi
     fi
                   
